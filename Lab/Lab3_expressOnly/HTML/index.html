@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <input id="user" value="Alice" />
+    <input id="room" value="lobby" />
+    <input id="text" placeholder="say something..." />
+    <button id="send">Send</button>
+    <pre id="log"></pre>
+
+    <script>
+      const ws = new WebSocket("ws://localhost:3001/ws");
+      const log = (m) =>
+        (document.getElementById("log").textContent += m + "\n");
+
+      ws.onopen = () => log("[ws] open");
+      ws.onmessage = (ev) => log("[ws] " + ev.data);
+
+      // join room right after open (optional)
+      ws.addEventListener("open", () => {
+        const room = document.getElementById("room").value;
+        ws.send(JSON.stringify({ type: "join", room }));
+      });
+
+      document.getElementById("send").onclick = () => {
+        const user = document.getElementById("user").value || "Anonymous";
+        const room = document.getElementById("room").value || "lobby";
+        const text = document.getElementById("text").value || "";
+        ws.send(JSON.stringify({ type: "chat", user, room, text }));
+      };
+    </script>
+  </body>
+</html>

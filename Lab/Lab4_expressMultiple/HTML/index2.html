@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <input id="user" value="Alice" />
+    <input id="text" placeholder="say something..." />
+    <button id="send">Send</button>
+    <pre id="log"></pre>
+
+    <script>
+      const ws = new WebSocket("ws://localhost:3001/ws?room=778899");
+      const log = (m) =>
+        (document.getElementById("log").textContent += m + "\n");
+
+      let myRoom = null;
+
+      ws.onopen = () => log("[ws] open");
+
+      ws.onmessage = (ev) => {
+        const msg = JSON.parse(ev.data);
+        log("[ws] " + ev.data);
+
+        if (msg.type === "system" && msg.room) {
+          myRoom = msg.room; // ← capture the private room
+          log("[system] Assigned room: " + myRoom);
+        }
+      };
+
+      document.getElementById("send").onclick = () => {
+        const user = document.getElementById("user").value || "Anonymous";
+        const text = document.getElementById("text").value || "";
+        if (!myRoom) {
+          log("[error] no room yet");
+          return;
+        }
+        ws.send(JSON.stringify({ type: "chat", user, room: myRoom, text }));
+      };
+    </script>
+  </body>
+</html>
